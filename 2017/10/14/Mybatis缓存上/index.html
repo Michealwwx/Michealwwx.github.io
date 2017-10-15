@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html class="full-height">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bulma/0.4.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  
+  
+  <title>Mybatis缓存上 | Michaelwwx</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Mybatis的缓存机制 前言： Mybatis包含一个非常强大的查询缓存特性，他可以非常方便的配置和定制。缓存可以极大的提升查询效率。 Mybatis系统和Hibernate系统类似中定义了两级缓存： 一级缓存和二级缓存。 一级缓存（本地缓存），是基于SqlSession级别的缓存，默认情况下，一级缓存是开启的。二级缓存（全局缓存），是基于nameSpace级别的缓存，二级缓存需要手动开启和配置">
+<meta name="keywords" content="Mybatis Cache">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mybatis缓存上">
+<meta property="og:url" content="http://michaelwwx.top/2017/10/14/Mybatis缓存上/index.html">
+<meta property="og:site_name" content="Michaelwwx">
+<meta property="og:description" content="Mybatis的缓存机制 前言： Mybatis包含一个非常强大的查询缓存特性，他可以非常方便的配置和定制。缓存可以极大的提升查询效率。 Mybatis系统和Hibernate系统类似中定义了两级缓存： 一级缓存和二级缓存。 一级缓存（本地缓存），是基于SqlSession级别的缓存，默认情况下，一级缓存是开启的。二级缓存（全局缓存），是基于nameSpace级别的缓存，二级缓存需要手动开启和配置">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://michaelwwx.top/2017/10/14/Mybatis缓存上/mybatis.jpg">
+<meta property="og:updated_time" content="2017-10-15T14:19:03.918Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mybatis缓存上">
+<meta name="twitter:description" content="Mybatis的缓存机制 前言： Mybatis包含一个非常强大的查询缓存特性，他可以非常方便的配置和定制。缓存可以极大的提升查询效率。 Mybatis系统和Hibernate系统类似中定义了两级缓存： 一级缓存和二级缓存。 一级缓存（本地缓存），是基于SqlSession级别的缓存，默认情况下，一级缓存是开启的。二级缓存（全局缓存），是基于nameSpace级别的缓存，二级缓存需要手动开启和配置">
+<meta name="twitter:image" content="http://michaelwwx.top/2017/10/14/Mybatis缓存上/mybatis.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Michaelwwx" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/layout.css">
+ 
+</head>
+
+<body>
+  <header id="navbar" class="overflow-hidden">
+  <div class="container">
+    <nav class="nav">
+    	
+    	
+         <div class="nav-left">
+            <a href="/" class="nav-item" style="font-size: 20px;">
+              <span class="logo">Michaelwwx</span>'s Blog
+            </a>
+         </div>
+         
+         
+         
+        <div class="nav-center is-hidden position-relative" id="search_container">
+            <div class="nav-item full-width full-height">
+                <i class="fa fa-search has-padding" aria-hidden="true"></i>
+                <input type="text" id="search_input" class="search-input full-height full-width" placeholder="Search post" autofocus>
+                <i id="close_search" class="fa fa-times" aria-hidden="true"></i>
+            </div>
+            <div id="search_result"></div>
+        </div>
+        
+        
+        
+        <div class="nav-right nav-menu">
+            <a class="nav-item" id="search">
+                <i class="fa fa-search" aria-hidden="true"></i>
+            </a>
+            
+            <a class="nav-item" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        <span class="nav-toggle" id="navMenuDropdown">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+        
+        
+        <div class="navbar-menu position-absolute full-width content-box is-hidden-desktop is-flex flex-column center" style="top: 100%;">
+            
+            <a class="nav-item flex-4" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item flex-4" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item flex-4" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item flex-4" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        
+    </nav>
+  </div>
+</header>
+
+  <div id="main-wrap" class="position-relative" style="margin-top: 55px;">
+      <div class="main-inner-content">
+          <!--博文页面-->
+
+<style>
+    .header-box {
+        height: 370px;
+        filter: blur(10px);
+        background-size: cover;
+        background-color: lightsteelblue;
+    }
+
+    .post-box {
+        padding: 15px;
+        padding-top: 60px;
+        min-height: 80vh;
+        margin-top: -200px;
+        border-radius: 4px;
+        background-color: rgba(255,255,255,.8);
+    }
+
+    .post-avatar {
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+    }
+
+    .flow-chart {
+        text-align: center;
+    }
+
+    img[alt="post-cover"] {
+        display: none;
+    }
+</style>
+<header>
+    <div id="header_box" class="header-box"></div>
+</header>
+<section>
+    <div class="container post-box">
+        <div class="content post-title is-flex center flex-column" style="margin-bottom: 70px; overflow: auto;">
+            <h1 class="has-text-centered" style="padding-bottom: 10px; border-bottom: 3px solid #fff">
+                <strong>Mybatis缓存上</strong>
+            </h1>
+            
+            <div class="is-flex align-center">
+                <img class="post-avatar" src="http://oxtprvhvb.bkt.clouddn.com/timg.jpg">
+                <span style="padding:0 10px;"> <span class="sub-title">By</span>吴文祥</span>
+                <span class="post-date sub-title">at: 2017-10-14</span>
+            </div>
+            
+                <div>
+                    
+                         <a class="tag is-post-tag" href="/tags/Mybatis-Cache/">Mybatis Cache</a>
+                    
+                </div>
+            
+        </div>
+        <div class="content" style="overflow: auto">
+            <p><img src="/2017/10/14/Mybatis缓存上/mybatis.jpg" alt="post-cover"><br>Mybatis的缓存机制</p>
+<p>前言：</p>
+<p>Mybatis包含一个非常强大的查询缓存特性，他可以非常方便的配置和定制。缓存可以极大的提升查询效率。</p>
+<p>Mybatis系统和Hibernate系统类似中定义了两级缓存：</p>
+<p>一级缓存和二级缓存。</p>
+<p>一级缓存（本地缓存），是基于SqlSession级别的缓存，默认情况下，一级缓存是开启的。<br>二级缓存（全局缓存），是基于nameSpace级别的缓存，二级缓存需要手动开启和配置。<br>       为了提高扩展性，Mybatis定义了缓存接口Cache，可以通过实现Cache接口来自定义二级缓存。</p>
+<p>一.一级缓存（local cache）</p>
+<p>阅读mybatis源文档总结：<br>（1）一级缓存，即本地缓存，作用域为SqlSession，当Session flush或close后，该Session中的所有Cache将被清空。<br>（2）同一次会话期间只要查询过的数据都会保存在当前SqlSession的一个Map中，Key：hashCode+查询的SqlId+编写的Sql查询语句+参数<br>（3）一级缓存失效的四种情况<br>        —–不同的SqlSession对于不同的一级缓存。<br>        ——同一个SqlSession但是查询条件不同。<br>        ——同一个SqlSession查询期间执行了一次增删改操作。<br>        ——同一个SqlSession两次查询期间手动清空了缓存。<br>1.1证明一级缓存的存在</p>
+<p>案例：在同一个SqlSession中查询同一个id的Emp对象。</p>
+<pre><code>@Test
+public void TestFirstLevelCache() throws IOException
+{
+    SqlSession openSession=this.getSqlSessionFactory().openSession();
+    try {
+        EmpMapper empMapper=openSession.getMapper(EmpMapper.class);
+        Emp emp=empMapper.findEmpById(4);
+        Emp emp2=empMapper.findEmpById(4);
+        System.out.println(emp);
+        System.out.println(emp2);
+        System.out.println(emp==emp2);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    finally{
+        openSession.close();
+    }
+}
+</code></pre><p>结果</p>
+<p>分析：两条查询语句，只发送了一次sql语句，并且两次查询到封装的对象相同，说明第二次查询是从缓存中拿到的。证明了SqlSession级别的缓存存在。</p>
+<p>1.2一级缓存失效的情况</p>
+<p>一级缓存失效的四种情况<br>        —–不同的SqlSession对于不同的一级缓存。<br>        ——同一个SqlSession但是查询条件不同。<br>        ——同一个SqlSession查询期间执行了一次增删改操作。<br>        ——同一个SqlSession两次查询期间手动清空了缓存。</p>
+<p>二.二级缓存</p>
+<p>二级缓存，全局作用域缓存，二级缓存默认不开启，需要手动配置，Mybatis提供了二级缓存接口Cache以及实现。<br>生效：二级缓存只有在SqlSession关闭或提交之后才会生效。<br>原理：在开启了二级缓存的前提下，在一级缓存关闭以后，里面的缓存数据会迁移到二级缓存中。供程序使用。</p>
+<p>2.1使用步骤</p>
+<p>（1）在Mybatis全局配置文件的<settings>节点中配置</settings></p>
+<p><setting name="cacheEnabled" value="true"><br>（2）在相应的Mapper.xml文件中加上<br> <cache eviction="" flushinterval="" readonly size="" type=""></cache><br> 或<cache-ref namespace=""></cache-ref></setting></p>
+<p>cache标签中的属性：</p>
+<p>eviction：缓存回收策略，默认是LRU<br>—LRU—最近最少使用：移除最长时间不被使用的对象。<br>—FIFO–先进先出：按对象加入缓存的顺序来移除它们。<br>—SOFT-软引用：移除基于垃圾回收期状态和软引用规则的对象。<br>—WEAK-弱引用：更积极的移除基于垃圾收集器和弱引用规则的对象。<br>flushInteval：刷新间隔，单位毫秒<br>    默认情况下不设置，即没有刷新间隔，缓存仅仅调用语句时刷新。<br>size：引用数目，正整数<br>—代表缓存最多可以存储多少个对象。<br>readOnly：只读，true/false，默认false<br>—true：只读缓存，会给所有调用者返回缓存对象的相同实例，因此这些对象不能被修改。速度快。<br>—false：读写缓存，会利用序列化和反序列来返回缓存对象的拷贝，速度较只读缓存慢，优点是安全。注意，这也就是为什么pojo对象需要实现序列化接口的原因。<br>type:用于自定义缓存类的全类名。</p>
+<p>参照缓存cache-ref中的属性：<br>若想要在命名空间中共享相同的缓存配置，可以使用cache-ref元素来引用另外一个缓存。<br>namespace：表示引用哪个namespace的二级缓存，就将值设置为另外一个缓存的Mapper对象的全类名。</p>
+<p>（3）对相应的Pojo对象实现序列化接口。这个与Cache标签中的readOnly属性的false值相关。</p>
+<p>（4）需要在相应的查询语句中加上  userCache=”true”属性。表示该select语句使用二级缓存。</p>
+<p>2.2整合第三方二级缓存—EhCache</p>
+<p>EhCache是一个纯java的进程内缓存框架，具有快速、精干等特点，同时也是Hibernate中默认的CacheProvider。<br>Mybatis定义了Cache接口方便我们进行自定义扩展。</p>
+<p>步骤：<br>（1）导入Ehcache包，整合Mybatis的jar包，日志包<br> ehcache=core-<em>.jar、mybatis-ehcache-</em>.jar、sl4j-api-<em>.jar、slf4j-log4j-</em>.jar</p>
+<p>（2）编写ehcache.xml,具体可以到Ehcache官网上查看相关文档。</p>
+<p>ehcache.xml</p>
+<p>&lt;?xml version=”1.0” encoding=”UTF-8”?&gt;</p>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nonamespaceschemalocation="../config/ehcache.xsd"><br> <!-- 磁盘保存路径 --><br> <diskstore path="D:\ehcache"><br><br> <defaultcache maxelementsinmemory="10000" maxelementsondisk="10000000" eternal="false" overflowtodisk="true" timetoidleseconds="120" timetoliveseconds="120" diskexpirythreadintervalseconds="120" memorystoreevictionpolicy="LRU"><br> </defaultcache><br></diskstore></ehcache>
+
+<!-- 
+属性说明：
+l diskStore：指定数据在磁盘中的存储位置。
+l defaultCache：当借助CacheManager.add("demoCache")创建Cache时，EhCache便会采用<defalutCache/>指定的的管理策略
+
+以下属性是必须的：
+l maxElementsInMemory - 在内存中缓存的element的最大数目 
+l maxElementsOnDisk - 在磁盘上缓存的element的最大数目，若是0表示无穷大
+l eternal - 设定缓存的elements是否永远不过期。如果为true，则缓存的数据始终有效，如果为false那么还要根据timeToIdleSeconds，timeToLiveSeconds判断
+l overflowToDisk - 设定当内存缓存溢出的时候是否将过期的element缓存到磁盘上
+
+以下属性是可选的：
+l timeToIdleSeconds - 当缓存在EhCache中的数据前后两次访问的时间超过timeToIdleSeconds的属性取值时，这些数据便会删除，默认值是0,也就是可闲置时间无穷大
+l timeToLiveSeconds - 缓存element的有效生命期，默认是0.,也就是element存活时间无穷大
+ diskSpoolBufferSizeMB 这个参数设置DiskStore(磁盘缓存)的缓存区大小.默认是30MB.每个Cache都应该有自己的一个缓冲区.
+l diskPersistent - 在VM重启的时候是否启用磁盘保存EhCache中的数据，默认是false。
+l diskExpiryThreadIntervalSeconds - 磁盘缓存的清理线程运行间隔，默认是120秒。每个120s，相应的线程会进行一次EhCache中数据的清理工作
+l memoryStoreEvictionPolicy - 当内存缓存达到最大，有新的element加入的时候， 移除缓存中element的策略。默认是LRU（最近最少使用），可选的有LFU（最不常使用）和FIFO（先进先出）
+ -->
+<p>（3）配置Mapper.xml中的Cache标签中的type属性，该属性的值为</p>
+<p><cache type="org.mybatis.caches.ehcache.EhcacheCache"></cache><br>同样可以配置参照缓存。</p>
+<p>由于Mybatis内容很多，后面会继续更新Mybatis各方面的知识，包括Mybatis原理，Mybatis架构，Mybatis和Redis，memcache的整合等等。<br>本文是源码级别学习Mybatis系列的一节，如果您有兴趣，可以继续关注我哟，如果觉得本文不错，顺手点个赞吧，您的鼓励，是我继续分享知识的强大动力！<br>如果您觉得有不妥或者错误的地方，还请您不吝指教！</p>
+
+        </div>
+        <div class="post-reply">
+            
+                <!-- 来必力City版安装代码 -->
+                <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTM1My83OTE2">
+                    <script type="text/javascript">
+                        (function(d, s) {
+                            var j, e = d.getElementsByTagName(s)[0];
+
+                            if (typeof LivereTower === 'function') { return; }
+
+                            j = d.createElement(s);
+                            j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                            j.async = true;
+
+                            e.parentNode.insertBefore(j, e);
+                        })(document, 'script');
+                    </script>
+                    <noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+                </div>
+                <!-- City版安装代码已完成 -->
+            
+            
+            
+        </div>
+    </div>
+</section>
+<script>
+    // 获取第一张图, 用以当封面背景图
+    var img = document.querySelectorAll('img')[1]
+
+    if (img) {
+        var header_box = document.querySelector('#header_box')
+        header_box.style.backgroundImage = 'url('+ img.src +')'
+    }
+</script>
+
+      </div>
+  </div>
+  <style>
+  #footer {
+    min-height: 10vh;
+    background: black;
+    color: #fff;
+  }
+
+  #footer a {
+    color: #e1e1e1;
+  }
+</style>
+<footer id="footer" class="has-text-centered is-flex center">
+  <div class="container has-padding">
+    <div>
+      <div>
+        <br>
+        Copyright © Michaelwwx 2017
+        <br>
+        
+      </div>
+      <div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_uv"></span>
+</span>
+</div>
+    </div>
+  </div>
+  
+</footer>
+
+<script src="/js/search_core.js"></script>
+<script src="/js/script.js"></script>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+</body>
+
+</html>

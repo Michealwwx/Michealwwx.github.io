@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html class="full-height">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bulma/0.4.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  
+  
+  <title>Volatile关键字 | Michaelwwx</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="背景：Java语言是支持多线程的，为了解决线程并发的问题，在语言内部引入了同步块和volatile关键字机制。Java内存模型Java内存模型规定了所有的变量都存储在主存中，每条线程中有自己的工作内存，线程中的工作内存中保存了该线程所使用的变量（这些变量是从主存中拷贝而来）线程对变量的所有操作都必须在工作内存中进行。不同线程之间无法直接访问对方工作内存中变量，线程变量值的传递均需要通过主内存来完成">
+<meta name="keywords" content="JavaSe 内存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Volatile关键字">
+<meta property="og:url" content="http://michaelwwx.top/2016/08/12/Volatile关键字/index.html">
+<meta property="og:site_name" content="Michaelwwx">
+<meta property="og:description" content="背景：Java语言是支持多线程的，为了解决线程并发的问题，在语言内部引入了同步块和volatile关键字机制。Java内存模型Java内存模型规定了所有的变量都存储在主存中，每条线程中有自己的工作内存，线程中的工作内存中保存了该线程所使用的变量（这些变量是从主存中拷贝而来）线程对变量的所有操作都必须在工作内存中进行。不同线程之间无法直接访问对方工作内存中变量，线程变量值的传递均需要通过主内存来完成">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://oxtprvhvb.bkt.clouddn.com/javase.jpg">
+<meta property="og:image" content="http://michaelwwx.top/2016/08/12/Volatile关键字/volatile.png">
+<meta property="og:updated_time" content="2017-10-15T08:46:03.602Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Volatile关键字">
+<meta name="twitter:description" content="背景：Java语言是支持多线程的，为了解决线程并发的问题，在语言内部引入了同步块和volatile关键字机制。Java内存模型Java内存模型规定了所有的变量都存储在主存中，每条线程中有自己的工作内存，线程中的工作内存中保存了该线程所使用的变量（这些变量是从主存中拷贝而来）线程对变量的所有操作都必须在工作内存中进行。不同线程之间无法直接访问对方工作内存中变量，线程变量值的传递均需要通过主内存来完成">
+<meta name="twitter:image" content="http://oxtprvhvb.bkt.clouddn.com/javase.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Michaelwwx" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/layout.css">
+ 
+</head>
+
+<body>
+  <header id="navbar" class="overflow-hidden">
+  <div class="container">
+    <nav class="nav">
+    	
+    	
+         <div class="nav-left">
+            <a href="/" class="nav-item" style="font-size: 20px;">
+              <span class="logo">Michaelwwx</span>'s Blog
+            </a>
+         </div>
+         
+         
+         
+        <div class="nav-center is-hidden position-relative" id="search_container">
+            <div class="nav-item full-width full-height">
+                <i class="fa fa-search has-padding" aria-hidden="true"></i>
+                <input type="text" id="search_input" class="search-input full-height full-width" placeholder="Search post" autofocus>
+                <i id="close_search" class="fa fa-times" aria-hidden="true"></i>
+            </div>
+            <div id="search_result"></div>
+        </div>
+        
+        
+        
+        <div class="nav-right nav-menu">
+            <a class="nav-item" id="search">
+                <i class="fa fa-search" aria-hidden="true"></i>
+            </a>
+            
+            <a class="nav-item" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        <span class="nav-toggle" id="navMenuDropdown">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+        
+        
+        <div class="navbar-menu position-absolute full-width content-box is-hidden-desktop is-flex flex-column center" style="top: 100%;">
+            
+            <a class="nav-item flex-4" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item flex-4" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item flex-4" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item flex-4" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        
+    </nav>
+  </div>
+</header>
+
+  <div id="main-wrap" class="position-relative" style="margin-top: 55px;">
+      <div class="main-inner-content">
+          <!--博文页面-->
+
+<style>
+    .header-box {
+        height: 370px;
+        filter: blur(10px);
+        background-size: cover;
+        background-color: lightsteelblue;
+    }
+
+    .post-box {
+        padding: 15px;
+        padding-top: 60px;
+        min-height: 80vh;
+        margin-top: -200px;
+        border-radius: 4px;
+        background-color: rgba(255,255,255,.8);
+    }
+
+    .post-avatar {
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+    }
+
+    .flow-chart {
+        text-align: center;
+    }
+
+    img[alt="post-cover"] {
+        display: none;
+    }
+</style>
+<header>
+    <div id="header_box" class="header-box"></div>
+</header>
+<section>
+    <div class="container post-box">
+        <div class="content post-title is-flex center flex-column" style="margin-bottom: 70px; overflow: auto;">
+            <h1 class="has-text-centered" style="padding-bottom: 10px; border-bottom: 3px solid #fff">
+                <strong>Volatile关键字</strong>
+            </h1>
+            
+            <div class="is-flex align-center">
+                <img class="post-avatar" src="http://oxtprvhvb.bkt.clouddn.com/timg.jpg">
+                <span style="padding:0 10px;"> <span class="sub-title">By</span>吴文祥</span>
+                <span class="post-date sub-title">at: 2016-08-12</span>
+            </div>
+            
+                <div>
+                    
+                         <a class="tag is-post-tag" href="/tags/JavaSe-内存/">JavaSe 内存</a>
+                    
+                </div>
+            
+        </div>
+        <div class="content" style="overflow: auto">
+            <p><img src="http://oxtprvhvb.bkt.clouddn.com/javase.jpg" alt="post-cover"><br>背景：Java语言是支持多线程的，为了解决线程并发的问题，在语言内部引入了同步块和volatile关键字机制。<br>Java内存模型<br>Java内存模型规定了所有的变量都存储在主存中，每条线程中有自己的工作内存，线程中的工作内存中保存了该线程所使用的变量（这些变量是从主存中拷贝而来）<br>线程对变量的所有操作都必须在工作内存中进行。不同线程之间无法直接访问对方工作内存中变量，线程变量值的传递均需要通过主内存来完成。</p>
+<p>如图：Java内存模型：<br><img src="/2016/08/12/Volatile关键字/volatile.png" alt=""></p>
+<p>Java并发编程三点要求：<br>原子性<br>有序性<br>可见性<br>一.原子性  </p>
+<p>二.有序性<br>定义：即程序执行随着代码顺序而执行。</p>
+<p>但是在程序执行的时候，为了提高执行效率，虚拟机会进行指令重排序已追求更高效率。重排序对单线程没有影响，也不会影响最终的结果，但其对多线程环境下的结果可能会产生影响，所以为了确保最终结果的正确性，我们就需要禁止重排序。<br>解决办法：JVM中对Java代码有个happened-before原则和使用volatile关键字确保了不会进行指令重排序继而保证有序性。</p>
+<p>三.可见性<br>定义：当多个线程去访问同一个变量时，某个线程对变量执行修改后，其余线程会立刻看到修改的变量。<br>概述：<br>例如：<br>线程1执行的代码：<br>Int i=0;<br>I=10;</p>
+<p>线程2执行的代码：<br>J=i;</p>
+<p>结果为：J=0；</p>
+<p>解决：当一个共享变量被volatile修饰时，他会保证修改的值立即被更新到主存，当有其他线程需要读取时，他会去主存中读取新值。<br>另外还可以通过synchronized和lock能保证同一时刻只用一个线程获取锁然后执行同步代码，并且在释放锁之前会对变量的修改刷新到主存中，因此可以保证可见性。</p>
+<p>总结；<br>volatile可以保证线程可见性且提供了一定的有序性，但是无法保证原子性。在jvm底层volatile是采用“内存屏障”来实现的。</p>
+<p>一旦一个共享变量（类的成员变量，类的静态成员变量）被volatile修饰之后，那么就具备了两层语义：<br>保证了不同线程对这个变量进行操作时的可见性。<br>禁止进行指令重排序—–保证了有序性<br>注意：volatile不能保证原子性。</p>
+
+        </div>
+        <div class="post-reply">
+            
+                <!-- 来必力City版安装代码 -->
+                <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTM1My83OTE2">
+                    <script type="text/javascript">
+                        (function(d, s) {
+                            var j, e = d.getElementsByTagName(s)[0];
+
+                            if (typeof LivereTower === 'function') { return; }
+
+                            j = d.createElement(s);
+                            j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                            j.async = true;
+
+                            e.parentNode.insertBefore(j, e);
+                        })(document, 'script');
+                    </script>
+                    <noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+                </div>
+                <!-- City版安装代码已完成 -->
+            
+            
+            
+        </div>
+    </div>
+</section>
+<script>
+    // 获取第一张图, 用以当封面背景图
+    var img = document.querySelectorAll('img')[1]
+
+    if (img) {
+        var header_box = document.querySelector('#header_box')
+        header_box.style.backgroundImage = 'url('+ img.src +')'
+    }
+</script>
+
+      </div>
+  </div>
+  <style>
+  #footer {
+    min-height: 10vh;
+    background: black;
+    color: #fff;
+  }
+
+  #footer a {
+    color: #e1e1e1;
+  }
+</style>
+<footer id="footer" class="has-text-centered is-flex center">
+  <div class="container has-padding">
+    <div>
+      <div>
+        <br>
+        Copyright © Michaelwwx 2017
+        <br>
+        
+      </div>
+      <div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_uv"></span>
+</span>
+</div>
+    </div>
+  </div>
+  
+</footer>
+
+<script src="/js/search_core.js"></script>
+<script src="/js/script.js"></script>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+</body>
+
+</html>
