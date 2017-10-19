@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://michaelwwx.top/"/>
-  <updated>2017-10-15T14:19:52.858Z</updated>
+  <updated>2017-10-15T14:20:10.353Z</updated>
   <id>http://michaelwwx.top/</id>
   
   <author>
@@ -15,30 +15,6 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
-  
-  <entry>
-    <title>category</title>
-    <link href="http://michaelwwx.top/2017/10/15/category/"/>
-    <id>http://michaelwwx.top/2017/10/15/category/</id>
-    <published>2017-10-14T16:06:30.000Z</published>
-    <updated>2017-10-15T14:19:52.858Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="/2017/10/15/category/category.jpg" alt="post-cover"><br>测试类别条目是否工作正常</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;&lt;img src=&quot;/2017/10/15/category/category.jpg&quot; alt=&quot;post-cover&quot;&gt;&lt;br&gt;测试类别条目是否工作正常&lt;/p&gt;
-
-      
-    
-    </summary>
-    
-    
-      <category term="类别功能测试" scheme="http://michaelwwx.top/tags/%E7%B1%BB%E5%88%AB%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95/"/>
-    
-  </entry>
   
   <entry>
     <title>bootStrap</title>

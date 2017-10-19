@@ -3,21 +3,6 @@
   
     
     <entry>
-      <title><![CDATA[category]]></title>
-      <url>/2017/10/15/category/</url>
-      <content type="html"><![CDATA[<p><img src="/2017/10/15/category/category.jpg" alt="post-cover"><br>测试类别条目是否工作正常</p>
-]]></content>
-      
-        
-        <tags>
-            
-            <tag> 类别功能测试 </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
       <title><![CDATA[bootStrap]]></title>
       <url>/2017/10/14/bootStrap/</url>
       <content type="html"><![CDATA[<p><img src="/2017/10/14/bootStrap/a.jpg" alt="post-cover"></p>
