@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="full-height">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//cdn.bootcss.com/bulma/0.4.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  
+  
+  <title>JVM浅析 | Michaelwwx</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="垃圾回收的概念： 在jvm中，堆内存和垃圾回收器这两个部分和垃圾回收相关。堆内存是运行时用来存储实例对象和数据的空间。垃圾回收只运行在堆区上。 在堆区和对象空间，把对象根据存活的周期，把对象分成3部分。  年轻代 老年代 永久代对象被回收的规则：当一个对象不被引用了，那么它就是可以被回收的对象。    public static void main(String[]args) {String s">
+<meta name="keywords" content="JVM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM浅析">
+<meta property="og:url" content="http://michaelwwx.top/2017/07/09/JVM/index.html">
+<meta property="og:site_name" content="Michaelwwx">
+<meta property="og:description" content="垃圾回收的概念： 在jvm中，堆内存和垃圾回收器这两个部分和垃圾回收相关。堆内存是运行时用来存储实例对象和数据的空间。垃圾回收只运行在堆区上。 在堆区和对象空间，把对象根据存活的周期，把对象分成3部分。  年轻代 老年代 永久代对象被回收的规则：当一个对象不被引用了，那么它就是可以被回收的对象。    public static void main(String[]args) {String s">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://oxtprvhvb.bkt.clouddn.com/%E4%B8%8B%E8%BD%BD.jpg">
+<meta property="og:updated_time" content="2017-11-02T14:24:19.252Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM浅析">
+<meta name="twitter:description" content="垃圾回收的概念： 在jvm中，堆内存和垃圾回收器这两个部分和垃圾回收相关。堆内存是运行时用来存储实例对象和数据的空间。垃圾回收只运行在堆区上。 在堆区和对象空间，把对象根据存活的周期，把对象分成3部分。  年轻代 老年代 永久代对象被回收的规则：当一个对象不被引用了，那么它就是可以被回收的对象。    public static void main(String[]args) {String s">
+<meta name="twitter:image" content="http://oxtprvhvb.bkt.clouddn.com/%E4%B8%8B%E8%BD%BD.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Michaelwwx" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/layout.css">
+ 
+</head>
+
+<body>
+  <header id="navbar" class="overflow-hidden">
+  <div class="container">
+    <nav class="nav">
+    	
+    	
+         <div class="nav-left">
+            <a href="/" class="nav-item" style="font-size: 20px;">
+              <span class="logo">Michaelwwx</span>'s Blog
+            </a>
+         </div>
+         
+         
+         
+        <div class="nav-center is-hidden position-relative" id="search_container">
+            <div class="nav-item full-width full-height">
+                <i class="fa fa-search has-padding" aria-hidden="true"></i>
+                <input type="text" id="search_input" class="search-input full-height full-width" placeholder="Search post" autofocus>
+                <i id="close_search" class="fa fa-times" aria-hidden="true"></i>
+            </div>
+            <div id="search_result"></div>
+        </div>
+        
+        
+        
+        <div class="nav-right nav-menu">
+            <a class="nav-item" id="search">
+                <i class="fa fa-search" aria-hidden="true"></i>
+            </a>
+            
+            <a class="nav-item" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        <span class="nav-toggle" id="navMenuDropdown">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+        
+        
+        <div class="navbar-menu position-absolute full-width content-box is-hidden-desktop is-flex flex-column center" style="top: 100%;">
+            
+            <a class="nav-item flex-4" href="/">
+                Home
+            </a>
+            
+            <a class="nav-item flex-4" href="/works">
+                My Works
+            </a>
+            
+            <a class="nav-item flex-4" href="/about">
+                About
+            </a>
+            
+            <a class="nav-item flex-4" href="/source">
+                Source
+            </a>
+            
+        </div>
+        
+        
+        
+    </nav>
+  </div>
+</header>
+
+  <div id="main-wrap" class="position-relative " style="margin-top: 55px;">
+      <div class="main-inner-content">
+          <!--博文页面-->
+
+<style>
+    .header-box {
+        height: 370px;
+        filter: blur(10px);
+        background-size: cover;
+        background-color: lightsteelblue;
+    }
+
+    .post-box {
+        padding: 15px;
+        padding-top: 60px;
+        min-height: 80vh;
+        margin-top: -200px;
+        border-radius: 4px;
+        background-color: rgba(255,255,255,.8);
+    }
+
+    .post-avatar {
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+    }
+
+    .flow-chart {
+        text-align: center;
+    }
+
+    img[alt="post-cover"] {
+        display: none;
+    }
+</style>
+<header>
+    <div id="header_box" class="header-box"></div>
+</header>
+<section>
+    <div class="container post-box">
+        <div class="content post-title is-flex center flex-column" style="margin-bottom: 70px; overflow: auto;">
+            <h1 class="has-text-centered" style="padding-bottom: 10px; border-bottom: 3px solid #fff">
+                <strong>JVM浅析</strong>
+            </h1>
+            
+            <div class="is-flex align-center">
+                <img class="post-avatar" src="http://oxtprvhvb.bkt.clouddn.com/timg.jpg">
+                <span style="padding:0 10px;"> <span class="sub-title">By</span>吴文祥</span>
+                <span class="post-date sub-title">at: 2017-07-09</span>
+            </div>
+            
+                <div>
+                    
+                         <a class="tag is-post-tag" href="/tags/JVM/">JVM</a>
+                    
+                </div>
+            
+        </div>
+        <div class="content" style="overflow: auto">
+            <p><img src="http://oxtprvhvb.bkt.clouddn.com/%E4%B8%8B%E8%BD%BD.jpg" alt="post-cover"></p>
+<h2 id="垃圾回收的概念："><a href="#垃圾回收的概念：" class="headerlink" title="垃圾回收的概念："></a>垃圾回收的概念：</h2><blockquote>
+<p>在jvm中，堆内存和垃圾回收器这两个部分和垃圾回收相关。堆内存是运行时用来存储实例对象和数据的空间。垃圾回收只运行在堆区上。</p>
+<p>在堆区和对象空间，把对象根据存活的周期，把对象分成3部分。<br></p>
+<ol>
+<li>年轻代<br></li>
+<li>老年代<br></li>
+<li>永久代<br><br><strong>对象被回收的规则：当一个对象不被引用了，那么它就是可以被回收的对象。</strong></li>
+</ol>
+<p><code></code></p>
+<ul>
+<li>public static void main(String[]args) {<br><br>String s1=”a”;//“a”被s1所依赖，s1被栈区所依赖<br><br>String s2=”b”;//s1已经从栈区弹出，这时”a”已经无人引用，”a”已经可以被回收<br><br>String s3=”c”;<br>}<br><br><br>eden<br><br>s0<br><br>s1<br><br>tenured<br><br>permanent<br><br>年轻区<br><br>老年区<br><br>永久区<br><br>年轻区：<br></li>
+</ul>
+<ol>
+<li><strong>Eden</strong>：所有的实例运行时最初的部分会分配到eden区。<br></li>
+<li><strong>S0</strong>：eden区中经过一次垃圾回收之后依然存活的对象，会被转移到s0区<br></li>
+<li><strong>S1</strong>：s0区中再经过一次垃圾回收之后依然存活的对象，会被转移到s1区，如果s0满了，s1区也会转存一部分s0区的对象<br></li>
+<li><strong>老年区</strong>：s0，s1几轮迭代后依然存活的对象。<br></li>
+<li><strong>永久区</strong>：元数据，方法等等（jdk1.8中已经移除了永久区）<br></li>
+</ol>
+</blockquote>
+<h2 id="垃圾回收机制："><a href="#垃圾回收机制：" class="headerlink" title="垃圾回收机制："></a>垃圾回收机制：</h2><blockquote>
+<p>&emsp;&emsp;<strong>Java的垃圾回收是一个自动运行的管理程序，通过gc的自动执行，jvm将程序员从申请和释放内存的繁重操作中解放出来。</strong></p>
+<p>&emsp;&emsp;GC是一个自动执行的进程，程序员不需要在代码中主动初始化gc。Java提供了System.gc<br>()方法请求jvm调用gc。GC提供给程序员调用gc的机会。但是，jvm在执行这条命令的时候，它只会把这条命令当作是一个建议。因此手动调用gc不能保证这些请求会真的执行垃圾回收。Jvm会根据对内存中的eden区的实际使用情况，做出决定。<br>Jvm的规范把执行的选择权留给了各个版本的jvm的具体实现。</p>
+<p>&emsp;&emsp;<strong>垃圾回收的流程：</strong></p>
+<ol>
+<li>对象存放到eden区。</li>
+<li>如果对象没有被回收，会放到s区。</li>
+<li>如果对象在s区依然存活，则会放到t区。</li>
+<li>在t区，对象失去引用，则最后会被回收。</li>
+</ol>
+</blockquote>
+<p>&emsp;&emsp;<strong>垃圾回收机制的各个区的详解：</strong></p>
+<blockquote>
+<p>Eden区：一个对象被创建的时候，它最初是被存放在堆内存的年轻代的eden区中。<br>S区（s0和s1）：eden区中的对象被回收过几轮之后，还存活的部分，会被从eden区转移到s0区。S0的对象回收过几轮之后，会被转移到s1区。<br>无用的对象会被立刻被打上标记，垃圾回收会根据标记来决定对象是继续留在原地，还是被转移到其他区或者是被回收。<br>O：老年代或者永久区的对象遵循的是另一套逻辑。当gc扫描年轻代区域的时候，s1区中的还活着的对象会被放到O区中。S1区中没有被应用的对象，会被立即删除。<br>Mayor GC：在java垃圾回收的最后一个阶段，如果发现对象没有任何引用，对象会被立即删除。</p>
+<p>&emsp;&emsp;从上可以看出，生存周期越长的对象，被gc扫描的频率就越低。<br>碎片的概念：<br>一旦实例在堆区中被删除，它们原来的位置就空出来以供后面的对象使用。但是这些闲暇空间的操作，必然会产生很多空隙，这些空隙就是内存碎片。<br>为了更快更有效率的重新利用内存，就需要对内存做去碎片化操作，此操作是由GC完成。根据不同的GC的策略，被回收的内存会被独立的内存压缩程序所整合。</p>
+</blockquote>
+<p>&emsp;&emsp;<strong>Java中提供了4种垃圾回收器</strong>：<br></p>
+<ol>
+<li>Serial Garbage Collector：顺序回收<br></li>
+<li>Parallel Garbage Collector：并行回收<br></li>
+<li>CMS Garbage Collector：并发标记回收<br></li>
+<li>G1 Garbage Collector：网格化回收</li>
+</ol>
+<blockquote>
+<p>Serial Garbage Collector：它是为但线程场景设计，只使用一个线程。它启动的时候会暂停所有应用线程。它适合简单的命令行程序。<br>使用-XX:+UseSerialGC参数</p>
+<p>Parallel Garbage Collector：并发多线程垃圾回收器。它是jvm的默认回收器。与Serial不同的是，它是使用多个线程来执行垃圾回收工作。它在执行垃圾回收的时候，也是需要暂停所有应用线程。</p>
+<p>CMS Garbage Collector：并发标记回收（concurrent mark sweep），使用多个线程扫描对内存标记可以被回收的对象，清除标记对象。<br>CMS只在两种情况下需要暂停应用线程：<br></p>
+<ol>
+<li>在老年区中标记引用对象的时候<br></li>
+<li>在做垃圾回收的时候，堆内存有变化<br><br>CMS比其他两种gc拥有更高的并发吞吐量，CMS需要占用更高的CPU性能。<br>使用-XX:+UsePalNewGC参数</li>
+</ol>
+<p>G1 Garbage Collector：G1垃圾回收器适用于更大的堆内存。它将内存划分成不同的区块，对各个区块分别进行回收工作。G1在回收空间之后会会立刻对堆空间的空闲空间进行整合。CMS也有内存整合，但需要停止所有线程后执行内存整合工作（STW，stop the<br>world）。而G1可以对不同的区间根据优先级进行整合。<br>使用-XX:+UseG1GC参数</p>
+</blockquote>
+<p><strong>JVM的优化参数：**</strong>本人第一次面试就考到了，建议各位学习一下相关参数以及其意义。(记不住没写出来，香菇)**</p>
+<blockquote>
+<p>1.-Xms：设置堆区的初始大小<br><br>2.-Xmx: 设置堆区的最大值<br><br>3.-Xmn: 设置年轻代的大小<br><br>4.-XX:PermSize:设置永久代的初始大小<br><br>5.-XX:MaxPermSize:设置永久代的最大值<br><br><strong>JVM参数实例：</strong><br>java&emsp; –Xms10m&emsp; –Xmx100m &emsp;–Xmn1m&emsp; -XX:PermSize20m&emsp; -XX:MaxPermSize20m&emsp; -XX:+UseSerialGC JavaApp<br><br>–</p>
+</blockquote>
+<p><strong>java的垃圾判断和回收托管的特征：</strong></p>
+<blockquote>
+<p>GC什么时候会回收一个对象呢？<br></p>
+<ol>
+<li>对象没有引用<br></li>
+<li>作用域发生了未被捕获的异常<br></li>
+<li>程序在作用域正常结束<br></li>
+<li>程序运行了System.exit(0);<br></li>
+<li>程序意外终止（被杀进程等等）<br></li>
+</ol>
+</blockquote>
+<p><strong>Jvm的内存泄漏：**</strong>面试中考到过！！！**<br></p>
+<blockquote>
+<ol>
+<li>循环引用（1.2之后就被解决了）<br></li>
+<li>调用对象和被调用对象的生命周期不一致（良好的编程习惯）<br></li>
+<li>gc在执行回收操作的时候发生异常，这个异常往往是重写finalize方法引发的。<br></li>
+</ol>
+</blockquote>
+
+        </div>
+        <div class="post-reply">
+            
+                <!-- 来必力City版安装代码 -->
+                <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTM1My83OTE2">
+                    <script type="text/javascript">
+                        (function(d, s) {
+                            var j, e = d.getElementsByTagName(s)[0];
+
+                            if (typeof LivereTower === 'function') { return; }
+
+                            j = d.createElement(s);
+                            j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                            j.async = true;
+
+                            e.parentNode.insertBefore(j, e);
+                        })(document, 'script');
+                    </script>
+                    <noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+                </div>
+                <!-- City版安装代码已完成 -->
+            
+            
+            
+        </div>
+    </div>
+</section>
+<script>
+    // 获取第一张图, 用以当封面背景图
+    var img = document.querySelectorAll('img')[1]
+
+    if (img) {
+        var header_box = document.querySelector('#header_box')
+        header_box.style.backgroundImage = 'url('+ img.src +')'
+    }
+</script>
+
+      </div>
+  </div>
+  <style>
+  #footer {
+    min-height: 10vh;
+    background: black;
+    color: #fff;
+  }
+
+  #footer a {
+    color: #e1e1e1;
+  }
+</style>
+<footer id="footer" class="has-text-centered is-flex center">
+  <div class="container has-padding">
+    <div>
+      <div>
+        <br>
+        Copyright © Michaelwwx 2017
+        <br>
+        
+      </div>
+      <div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_uv"></span>
+</span>
+</div>
+    </div>
+  </div>
+  
+</footer>
+
+<script src="/js/search_core.js"></script>
+<script src="/js/script.js"></script>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+</body>
+
+</html>
